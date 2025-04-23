@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghi chú cuộc họp</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 960px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        h1 {
+            color: #1a3c6d;
+            font-size: 32px;
+            margin: 0;
+            font-weight: 700;
+        }
+        .tab-container {
+            display: flex;
+            gap: 12px;
+            margin: 30px 0;
+            justify-content: center;
+        }
+        .tab {
+            padding: 12px 24px;
+            background-color: #e4e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #34495e;
+            transition: all 0.3s ease;
+        }
+        .tab.active, .tab:hover {
+            background-color: #1a3c6d;
+            color: #ffffff;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        input[type="date"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background-color: #f9fafb;
+            transition: all 0.3s ease;
+        }
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #1a3c6d;
+            box-shadow: 0 0 8px rgba(26, 60, 109, 0.2);
+        }
+        textarea {
+            height: 140px;
+            resize: vertical;
+        }
+        button {
+            background-color: #1a3c6d;
+            color: #ffffff;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 20px auto;
+        }
+        button:hover {
+            background-color: #15325b;
+        }
+        .notes-list, .history-list {
+            margin-top: 30px;
+        }
+        .note-item, .history-item {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background-color: #f9fafb;
+            transition: all 0.3s ease;
+        }
+        .note-item:hover, .history-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .note-item h3, .history-item h3 {
+            margin: 0 0 12px;
+            color: #1a3c6d;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .note-item p, .history-item p {
+            margin: 8px 0;
+            color: #34495e;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        .history-list:empty::before {
+            content: "Chưa có lịch sử ghi chú.";
+            color: #7f8c8d;
+            font-style: italic;
+            display: block;
+            text-align: center;
+            padding: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top: 1px solid #e0e0e0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        footer a {
+            color: #1a3c6d;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        h2 {
+            color: #1a3c6d;
+            font-size: 24px;
+            margin-top: 40px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1a3c6d;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ghi chú cuộc họp</h1>
+        </header>
+
+        <div class="tab-container">
+            <div class="tab active" onclick="showSection('form-section')">Thêm ghi chú</div>
+            <div class="tab" onclick="showSection('history-section')">Lịch sử cuộc họp</div>
+        </div>
+
+        <div id="form-section">
+            <div class="form-group">
+                <label for="meeting-date">Ngày họp</label>
+                <input type="date" id="meeting-date" required>
+            </div>
+            <div class="form-group">
+                <label for="recorder">Phụ trách ghi chú</label>
+                <input type="text" id="recorder" placeholder="Nhập tên người ghi chú" required>
+            </div>
+            <div class="form-group">
+                <label for="teacher-report">Báo cáo của giáo viên</label>
+                <textarea id="teacher-report" placeholder="Ghi báo cáo của giáo viên" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="team-leader-contact">Liên lạc từ trưởng nhóm</label>
+                <textarea id="team-leader-contact" placeholder="Ghi nội dung liên lạc từ trưởng nhóm (không bắt buộc)"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="conclusion">Nội dung chốt (nếu có)</label>
+                <textarea id="conclusion" placeholder="Ghi nội dung chốt (không bắt buộc)"></textarea>
+            </div>
+            <button onclick="addNote()">Lưu ghi chú</button>
+        </div>
+
+        <div id="history-section" style="display: none;">
+            <h2>Lịch sử cuộc họp</h2>
+            <div class="history-list" id="history-list"></div>
+        </div>
+
+        <footer>
+            © 2025 Tài liệu | Thiết kế bởi <a href="#">Thuận</a>
+        </footer>
+    </div>
+
+    <script>
+        let notesHistory = [];
+
+        function addNote() {
+            const date = document.getElementById('meeting-date').value;
+            const recorder = document.getElementById('recorder').value;
+            const teacherReport = document.getElementById('teacher-report').value;
+            const teamLeaderContact = document.getElementById('team-leader-contact').value;
+            const conclusion = document.getElementById('conclusion').value;
+
+            if (!date || !recorder || !teacherReport) {
+                alert('Vui lòng điền đầy đủ các trường bắt buộc!');
+                return;
+            }
+
+            const note = { date, recorder, teacherReport, teamLeaderContact, conclusion };
+            notesHistory.push(note);
+            updateHistoryList();
+
+            // Xóa form sau khi lưu
+            document.getElementById('meeting-date').value = '';
+            document.getElementById('recorder').value = '';
+            document.getElementById('teacher-report').value = '';
+            document.getElementById('team-leader-contact').value = '';
+            document.getElementById('conclusion').value = '';
+        }
+
+        function updateHistoryList() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+
+            notesHistory.forEach(note => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <h3>Cuộc họp ngày: ${note.date}</h3>
+                    <p><strong>Phụ trách ghi chú:</strong> ${note.recorder}</p>
+                    <p><strong>Báo cáo của giáo viên:</strong> ${note.teacherReport}</p>
+                    ${note.teamLeaderContact ? `<p><strong>Liên lạc từ trưởng nhóm:</strong> ${note.teamLeaderContact}</p>` : ''}
+                    ${note.conclusion ? `<p><strong>Nội dung chốt:</strong> ${note.conclusion}</p>` : ''}
+                `;
+                historyList.prepend(historyItem);
+            });
+        }
+
+        function showSection(sectionId) {
+            document.getElementById('form-section').style.display = sectionId === 'form-section' ? 'block' : 'none';
+            document.getElementById('history-section').style.display = sectionId === 'history-section' ? 'block' : 'none';
+
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showSection('${sectionId}')"]`).classList.add('active');
+        }
+    </script>
+</body>
+</html>
