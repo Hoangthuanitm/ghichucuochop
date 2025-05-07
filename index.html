@@ -122,9 +122,17 @@
         }
         .note-item p, .history-item p {
             margin: 8px 0;
-            color: #34495e;
             line-height: 1.6;
             font-size: 15px;
+        }
+        .history-item p.title {
+            margin-bottom: 0;
+            color: #1a3c6d; /* Dark blue for titles */
+        }
+        .history-item p.content {
+            margin-top: 4px;
+            color: #4a5568; /* Dark gray for content */
+            line-height: 1.6;
         }
         .history-list:empty::before {
             content: "Chưa có lịch sử ghi chú.";
@@ -300,6 +308,17 @@
         let editingIndex = null;
         let deleteIndex = null;
 
+        // Hàm chuyển đổi xuống dòng thành <br> và thoát HTML
+        function formatTextForDisplay(text) {
+            if (!text) return '';
+            // Thoát các ký tự HTML để tránh XSS
+            const div = document.createElement('div');
+            div.textContent = text;
+            let escapedText = div.innerHTML;
+            // Thay \n bằng <br>
+            return escapedText.replace(/\n/g, '<br>');
+        }
+
         // Load notes from localStorage when the page loads
         window.onload = function() {
             const storedNotes = localStorage.getItem('notesHistory');
@@ -334,7 +353,7 @@
             }
 
             // Save to localStorage
-            console.log('Saving notesHistory:', notesHistory); // Debug log
+            console.log('Saving notesHistory:', notesHistory);
             localStorage.setItem('notesHistory', JSON.stringify(notesHistory));
             updateHistoryList();
 
@@ -407,19 +426,27 @@
         function updateHistoryList() {
             const historyList = document.getElementById('history-list');
             historyList.innerHTML = '';
-            console.log('Updating history with notes:', notesHistory); // Debug log
+            console.log('Updating history with notes:', notesHistory);
 
             notesHistory.forEach((note, index) => {
                 const historyItem = document.createElement('div');
                 historyItem.className = 'history-item';
 
-                // Create content for history item
+                // Create content for history item with title and content on separate lines
                 historyItem.innerHTML = `
                     <h3>Cuộc họp ngày: ${note.date}</h3>
-                    <p><strong>Phụ trách ghi chú:</strong> ${note.recorder}</p>
-                    <p><strong>Báo cáo của giáo viên:</strong> ${note.teacherReport}</p>
-                    ${note.teamLeaderContact ? `<p><strong>Liên lạc từ trưởng nhóm:</strong> ${note.teamLeaderContact}</p>` : ''}
-                    ${note.conclusion ? `<p><strong>Nội dung chốt:</strong> ${note.conclusion}</p>` : ''}
+                    <p class="title"><strong>Phụ trách ghi chú:</strong></p>
+                    <p class="content">${formatTextForDisplay(note.recorder)}</p>
+                    <p class="title"><strong>Báo cáo của giáo viên:</strong></p>
+                    <p class="content">${formatTextForDisplay(note.teacherReport)}</p>
+                    ${note.teamLeaderContact ? `
+                        <p class="title"><strong>Liên lạc từ trưởng nhóm:</strong></p>
+                        <p class="content">${formatTextForDisplay(note.teamLeaderContact)}</p>
+                    ` : ''}
+                    ${note.conclusion ? `
+                        <p class="title"><strong>Nội dung chốt:</strong></p>
+                        <p class="content">${formatTextForDisplay(note.conclusion)}</p>
+                    ` : ''}
                 `;
 
                 // Create edit button
