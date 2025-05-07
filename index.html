@@ -108,6 +108,7 @@
             border-radius: 10px;
             background-color: #f9fafb;
             transition: all 0.3s ease;
+            position: relative;
         }
         .note-item:hover, .history-item:hover {
             transform: translateY(-4px);
@@ -156,6 +157,87 @@
             padding-bottom: 10px;
             border-bottom: 2px solid #1a3c6d;
         }
+        .success-message {
+            display: none;
+            text-align: center;
+            color: #2ecc71;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .delete-btn, .edit-btn {
+            position: absolute;
+            top: 20px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            z-index: 10;
+        }
+        .delete-btn {
+            right: 20px;
+            background-color: #e74c3c;
+            color: #ffffff;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .edit-btn {
+            right: 80px;
+            background-color: #f1c40f;
+            color: #ffffff;
+        }
+        .edit-btn:hover {
+            background-color: #d4ac0d;
+        }
+        .confirm-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .confirm-dialog-content {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .confirm-dialog-content p {
+            margin: 0 0 20px;
+            color: #333;
+            font-size: 16px;
+        }
+        .confirm-dialog-content button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .confirm-dialog-content .confirm-btn {
+            background-color: #e74c3c;
+            color: #ffffff;
+        }
+        .confirm-dialog-content .confirm-btn:hover {
+            background-color: #c0392b;
+        }
+        .confirm-dialog-content .cancel-btn {
+            background-color: #95a5a6;
+            color: #ffffff;
+        }
+        .confirm-dialog-content .cancel-btn:hover {
+            background-color: #7f8c8d;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -171,6 +253,7 @@
         </div>
 
         <div id="form-section">
+            <div class="success-message" id="success-message">Ghi chú đã được lưu thành công!</div>
             <div class="form-group">
                 <label for="meeting-date">Ngày họp</label>
                 <input type="date" id="meeting-date" required>
@@ -191,12 +274,20 @@
                 <label for="conclusion">Nội dung chốt (nếu có)</label>
                 <textarea id="conclusion" placeholder="Ghi nội dung chốt (không bắt buộc)"></textarea>
             </div>
-            <button onclick="addNote()">Lưu ghi chú</button>
+            <button id="save-btn" onclick="saveNote()">Lưu ghi chú</button>
         </div>
 
         <div id="history-section" style="display: none;">
             <h2>Lịch sử cuộc họp</h2>
             <div class="history-list" id="history-list"></div>
+        </div>
+
+        <div id="confirm-dialog" class="confirm-dialog">
+            <div class="confirm-dialog-content">
+                <p>Bạn có chắc muốn xóa ghi chú này?</p>
+                <button class="confirm-btn" id="confirm-delete">Xóa</button>
+                <button class="cancel-btn" id="cancel-delete">Hủy</button>
+            </div>
         </div>
 
         <footer>
@@ -206,8 +297,19 @@
 
     <script>
         let notesHistory = [];
+        let editingIndex = null;
+        let deleteIndex = null;
 
-        function addNote() {
+        // Load notes from localStorage when the page loads
+        window.onload = function() {
+            const storedNotes = localStorage.getItem('notesHistory');
+            if (storedNotes) {
+                notesHistory = JSON.parse(storedNotes);
+                updateHistoryList();
+            }
+        };
+
+        function saveNote() {
             const date = document.getElementById('meeting-date').value;
             const recorder = document.getElementById('recorder').value;
             const teacherReport = document.getElementById('teacher-report').value;
@@ -220,24 +322,98 @@
             }
 
             const note = { date, recorder, teacherReport, teamLeaderContact, conclusion };
-            notesHistory.push(note);
+
+            if (editingIndex !== null) {
+                // Update existing note
+                notesHistory[editingIndex] = note;
+                editingIndex = null;
+                document.getElementById('save-btn').textContent = 'Lưu ghi chú';
+            } else {
+                // Add new note
+                notesHistory.push(note);
+            }
+
+            // Save to localStorage
+            console.log('Saving notesHistory:', notesHistory); // Debug log
+            localStorage.setItem('notesHistory', JSON.stringify(notesHistory));
             updateHistoryList();
 
-            // Xóa form sau khi lưu
+            // Clear form after saving
+            resetForm();
+
+            // Show success message
+            const successMessage = document.getElementById('success-message');
+            successMessage.style.display = 'block';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 2000);
+        }
+
+        function editNote(index) {
+            const note = notesHistory[index];
+            editingIndex = index;
+
+            // Fill form with note data
+            document.getElementById('meeting-date').value = note.date;
+            document.getElementById('recorder').value = note.recorder;
+            document.getElementById('teacher-report').value = note.teacherReport;
+            document.getElementById('team-leader-contact').value = note.teamLeaderContact;
+            document.getElementById('conclusion').value = note.conclusion;
+
+            // Change button text
+            document.getElementById('save-btn').textContent = 'Cập nhật ghi chú';
+
+            // Show form section
+            showSection('form-section');
+        }
+
+        function deleteNote(index) {
+            console.log('deleteNote called with index:', index);
+            deleteIndex = index;
+            const dialog = document.getElementById('confirm-dialog');
+            dialog.style.display = 'flex';
+        }
+
+        function confirmDelete() {
+            console.log('Confirm delete for index:', deleteIndex);
+            try {
+                notesHistory.splice(deleteIndex, 1);
+                localStorage.setItem('notesHistory', JSON.stringify(notesHistory));
+                updateHistoryList();
+                console.log('Note deleted successfully');
+            } catch (error) {
+                console.error('Lỗi khi xóa ghi chú:', error);
+                alert('Đã xảy ra lỗi khi xóa ghi chú. Vui lòng thử lại.');
+            }
+            closeDialog();
+        }
+
+        function closeDialog() {
+            const dialog = document.getElementById('confirm-dialog');
+            dialog.style.display = 'none';
+            deleteIndex = null;
+        }
+
+        function resetForm() {
             document.getElementById('meeting-date').value = '';
             document.getElementById('recorder').value = '';
             document.getElementById('teacher-report').value = '';
             document.getElementById('team-leader-contact').value = '';
             document.getElementById('conclusion').value = '';
+            document.getElementById('save-btn').textContent = 'Lưu ghi chú';
+            editingIndex = null;
         }
 
         function updateHistoryList() {
             const historyList = document.getElementById('history-list');
             historyList.innerHTML = '';
+            console.log('Updating history with notes:', notesHistory); // Debug log
 
-            notesHistory.forEach(note => {
+            notesHistory.forEach((note, index) => {
                 const historyItem = document.createElement('div');
                 historyItem.className = 'history-item';
+
+                // Create content for history item
                 historyItem.innerHTML = `
                     <h3>Cuộc họp ngày: ${note.date}</h3>
                     <p><strong>Phụ trách ghi chú:</strong> ${note.recorder}</p>
@@ -245,6 +421,31 @@
                     ${note.teamLeaderContact ? `<p><strong>Liên lạc từ trưởng nhóm:</strong> ${note.teamLeaderContact}</p>` : ''}
                     ${note.conclusion ? `<p><strong>Nội dung chốt:</strong> ${note.conclusion}</p>` : ''}
                 `;
+
+                // Create edit button
+                const editButton = document.createElement('button');
+                editButton.className = 'edit-btn';
+                editButton.textContent = 'Chỉnh sửa';
+                editButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editNote(index);
+                });
+
+                // Create delete button
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-btn';
+                deleteButton.textContent = 'Xóa';
+                deleteButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('Delete button clicked for index:', index);
+                    deleteNote(index);
+                });
+
+                // Append buttons to history item
+                historyItem.appendChild(editButton);
+                historyItem.appendChild(deleteButton);
+
+                // Prepend history item to list
                 historyList.prepend(historyItem);
             });
         }
@@ -255,7 +456,15 @@
 
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelector(`.tab[onclick="showSection('${sectionId}')"]`).classList.add('active');
+
+            if (sectionId === 'form-section' && editingIndex === null) {
+                resetForm();
+            }
         }
+
+        // Attach event listeners for confirm dialog buttons
+        document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
+        document.getElementById('cancel-delete').addEventListener('click', closeDialog);
     </script>
 </body>
 </html>
